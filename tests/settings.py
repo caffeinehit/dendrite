@@ -30,8 +30,14 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sites',
+    'django.contrib.sessions',
     'dendrite',
     'tests.app',
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'tests.app.backends.TwitterBackend',
+    'tests.app.backends.TestBackend',
+)
 

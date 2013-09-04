@@ -1,5 +1,11 @@
 #!/bin/bash
 
-export PYTHONPATH=$PWD:$PYTHONPATH
+export PYTHONPATH=`pwd`:$PYTHONPATH
 
-django-admin.py test dendrite --settings tests.settings --traceback
+if [ `django-admin.py version | grep '1.5'` ]; then
+    tests='app'
+else
+    tests='tests.app'
+fi
+
+django-admin.py test $tests --settings tests.settings --traceback

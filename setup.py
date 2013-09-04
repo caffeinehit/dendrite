@@ -13,6 +13,7 @@ with open('LICENCE') as f:
 with open('requirements.txt') as f:
     install_requires = f.read().strip().split('\n')
 
+
 setup(
     name='dendrite',
     version=dendrite.__version__,

@@ -1,6 +1,6 @@
-from django.conf.urls import url, include, patterns
+from django.conf.urls import include, patterns, url
 
 urlpatterns = patterns(
     '',
-    url(r'^', include('dendrite.urls', namespace='dendrite')),
+    url(r'^', include('tests.app.urls')),
 )
