@@ -294,8 +294,12 @@ class OAuth2CallbackView(CallbackView):
             return self.error(request, error=ERRORS.EXPIRED)
 
         try:
-            self.oauth_token = self.process_token(
-                self.client.get_access_token(code, grant_type='authorization_code'))
+            token = self.client.get_access_token(code, grant_type='authorization_code')
+
+            if 'error' in token:
+                return self.error(request, error=token)
+
+            self.oauth_token = self.process_token(token)
 
         except (ConnectionError, HTTPError) as e:
             logger.exception(ERRORS.HTTP_ERROR['error_description'], e)
