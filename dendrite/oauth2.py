@@ -67,7 +67,7 @@ class OAuth2(object):
             params=urlencode(params))
 
 
-    def get_token(self, code, **kwargs):
+    def get_access_token(self, code, **kwargs):
         url = self.access_token_url
 
         data = {'code': code,
@@ -83,4 +83,4 @@ class OAuth2(object):
         try:
             return json.loads(content)
         except ValueError:
-            return dict([(key, val[0]) for (key, val) in urlparse.parse_qs(content).items()])
+            return dict([(key, val[0]) for (key, val) in parse_qs(content).items()])

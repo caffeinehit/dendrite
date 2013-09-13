@@ -295,7 +295,7 @@ class OAuth2CallbackView(CallbackView):
 
         try:
             self.oauth_token = self.process_token(
-                self.client.get_token(code, grant_type='authorization_code'))
+                self.client.get_access_token(code, grant_type='authorization_code'))
 
         except (ConnectionError, HTTPError) as e:
             logger.exception(ERRORS.HTTP_ERROR['error_description'], e)

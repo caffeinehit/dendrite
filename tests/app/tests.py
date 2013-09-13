@@ -277,22 +277,34 @@ class DendriteTest(TestCase):
         self.assertEqual(1, TestProfile.objects.count())
 
     def test_oauth2_object(self):
+        data = {'access_token': 'asdf', 'expires': 86400}
+
+        qs_request = Mock(**{'post.return_value.content': urlencode(data)})
+        json_request = Mock(**{'post.return_value.content': json.dumps(data)})
+
         obj = OAuth2(client_id='valid',
                      client_secret='valid',
                      authorization_url='https://valid',
                      access_token_url='https://valid',
                      redirect_uri='valid',
-                     requests=self.oauth2_requests)
+                     requests=qs_request)
 
-        self.assertTrue(obj)
 
-        url = obj.get_authorization_url(scope = 'read write')
-        self.assertTrue(url)
+        token = obj.get_access_token('code')
+        self.assertTrue('access_token' in token)
 
-        token = obj.get_token('Test')
 
-        # Re-using OAuth1 data
-        self.assertTrue('oauth_token' in token)
+        obj = OAuth2(client_id='valid',
+                     client_secret='valid',
+                     authorization_url='https://valid',
+                     access_token_url='https://valid',
+                     redirect_uri='valid',
+                     requests=json_request)
+
+        token = obj.get_access_token('code')
+        self.assertTrue('access_token' in token)
+
+
 
     def test_oauth2_redirect_view(self):
         view = OAuth2TestConnectView.as_view()
