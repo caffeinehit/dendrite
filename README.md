@@ -1,7 +1,8 @@
 # dendrite, social connectivity as a library
 
 Barebones social connection library. Tries to not do everything so you
-can do anything. Only OAuth2 currently. Python 3 compatible.
+can do anything. Only OAuth1 and OAuth2 currently. Python 3
+compatible.
 
 ## Usage
 
