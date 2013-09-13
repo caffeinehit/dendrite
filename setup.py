@@ -13,6 +13,7 @@ with open('LICENCE') as f:
 with open('requirements.txt') as f:
     install_requires = f.read().strip().split('\n')
 
+packages = find_packages(exclude=('tests*', ))
 
 setup(
     name='dendrite',
@@ -25,8 +26,7 @@ setup(
     url='https://github.com/caffeinehit/dendrite',
     license=licence,
     install_requires=install_requires,
-    packages=find_packages(exclude=('tests', 'docs')),
-
-
+    include_package_data=True,
+    packages=packages,
 )
 
