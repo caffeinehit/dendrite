@@ -319,9 +319,11 @@ class DendriteTest(TestCase):
         self.assertEqual(0, TestProfile.objects.count())
 
         view = OAuth2TestConnectView.as_view(requests=self.oauth2_requests)
-        resp = view(self.rf.get(''))
+        redirect = '/test/redirect/'
+        resp = view(self.rf.get('?{}={}'.format(DENDRITE.NEXT, redirect)))
 
         self.assertEqual(302, resp.status_code)
+        self.assertEqual(redirect, resp.cookies[DENDRITE.NEXT].value)
 
         state = QueryDict(resp['Location'])['state']
 
@@ -331,11 +333,15 @@ class DendriteTest(TestCase):
                         'code': 'test',
                         'state': state
                         }))))
+
         request.user = AnonymousUser()
+
+        request.COOKIES[DENDRITE.NEXT] = redirect
 
         resp = view(request)
 
         self.assertEqual(302, resp.status_code)
+        self.assertEqual(resp['Location'], redirect)
         self.assertTrue(request.user.is_authenticated())
         self.assertEqual(1, User.objects.count())
         self.assertEqual(1, TestProfile.objects.count())

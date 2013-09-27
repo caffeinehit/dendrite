@@ -1,11 +1,12 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model, authenticate, login
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model, authenticate, login
-from django.views.generic import TemplateView
 from django.http import HttpResponseRedirect
-from requests.exceptions import ConnectionError, HTTPError
+from django.utils import timezone
+from django.views.generic import TemplateView
 from hashlib import sha1
+from requests.exceptions import ConnectionError, HTTPError
 
 from .oauth1 import OAuth1
 from .oauth2 import OAuth2
@@ -45,6 +46,23 @@ class SocialView(TemplateView):
 
     def cache_key(self, value):
         return 'dendrite:{}'.format(sha1(value.encode('utf-8')).hexdigest())
+
+
+    def get_next(self, request):
+        return (request.GET.get(DENDRITE.NEXT) or
+                request.COOKIES.get(DENDRITE.NEXT) or
+                getattr(request, 'session', {}).get(DENDRITE.NEXT) or
+                DENDRITE.LOGIN_REDIRECT_URL or
+                settings.LOGIN_REDIRECT_URL)
+
+
+    def set_next(self, response, url):
+        response.set_cookie(DENDRITE.NEXT, url)
+
+
+    def clear_next(self, response):
+        response.delete_cookie(DENDRITE.NEXT)
+
 
     def error(self, request, error=None, exception=None, status_code=400):
         return self.render_to_response({'error': error, 'exception': exception},
@@ -144,11 +162,10 @@ class CallbackView(SocialView):
 
 
     def redirect(self, request):
-        redirect = (request.GET.get(DENDRITE.NEXT) or
-                    getattr(request, 'session', request.COOKIES).get(DENDRITE.NEXT) or
-                    DENDRITE.LOGIN_REDIRECT_URL or
-                    settings.LOGIN_REDIRECT_URL)
-        return HttpResponseRedirect(redirect)
+        url = self.get_next(request)
+        response = HttpResponseRedirect(url)
+        self.clear_next(response)
+        return response
 
 
 ###########
@@ -206,9 +223,13 @@ class OAuth1ConnectView(SocialView):
                   self.oauth_token,
                   self.timeout)
 
-        url = self.client.get_authorization_url()
 
-        return HttpResponseRedirect(url)
+        url = self.client.get_authorization_url()
+        response = HttpResponseRedirect(url)
+
+        self.set_next(response, self.get_next(request))
+
+        return response
 
 
 class OAuth1CallbackView(CallbackView):
@@ -279,7 +300,11 @@ class OAuth2ConnectView(SocialView):
         url = self.client.get_authorization_url(
             self.scope, state=state, response_type='code')
 
-        return HttpResponseRedirect(url)
+        response = HttpResponseRedirect(url)
+
+        self.set_next(response, self.get_next(request))
+
+        return response
 
 
 class OAuth2CallbackView(CallbackView):
