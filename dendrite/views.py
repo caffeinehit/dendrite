@@ -34,7 +34,11 @@ ERRORS = pretend.stub(
     HTTP_ERROR={'error': 4,
                 'error_description': 'Error while requesting data from remote server.'},
     EXPIRED={'error': 5,
-             'error_description': 'Connection expired.'})
+             'error_description': 'Connection expired.'},
+    CODE_MISSING={'error': 6,
+                  'error_description': '`code` parameter is missing.'},
+    STATE_CHANGED={'error': 7,
+                   'error_description': '`state` parameter has changed.'})
 
 #########################
 # Shared functionality  #
@@ -314,6 +318,12 @@ class OAuth2CallbackView(CallbackView):
 
         if 'error' in request.GET:
             return self.error(request, error=request.GET.get('error'))
+
+        if code is None:
+            return self.error(request, error=ERRORS.CODE_MISSING)
+
+        if state is None:
+            return self.error(request, error=ERRORS.STATE_CHANGED)
 
         if not cache.get(self.cache_key(state)):
             return self.error(request, error=ERRORS.EXPIRED)
